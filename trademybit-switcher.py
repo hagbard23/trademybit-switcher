@@ -89,7 +89,7 @@ class TradeMyBitSwitcher(object):
             data = self.api.hashinfo()
             return [x for x in data['workers']]
 	except (socket.error, KeyError):
-	    return None
+	    return ['None']
 
     def best_algo(self):
         """Retrieves the "bestalgo" from TMB api"""
