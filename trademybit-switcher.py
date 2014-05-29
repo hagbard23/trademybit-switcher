@@ -113,11 +113,8 @@ class TradeMyBitSwitcher(object):
             best_algo = max(scores.iterkeys(), key=(lambda key: scores[key]))
 
             # Switch if not yet mining or we're crossing the threshold
-            if self.current_algo == None:
+            if self.current_algo == None or best_algo == self.current_algo:
                 best = best_algo
-	    elif best_algo == self.current_algo:
-		self.logger.debug('Current is best, not switching')
-		best = None
             else:
 		
 		distance = (scores[best_algo] - scores[self.current_algo]) / scores[self.current_algo]
@@ -126,7 +123,7 @@ class TradeMyBitSwitcher(object):
                     best = best_algo
                 else:
                     self.logger.debug('Score profitability distance not good enough to switch')
-                    best = None
+                    best = self.current_algo
 
             if self.profitability_log:
                 scores['date'] = datetime.datetime.now()
