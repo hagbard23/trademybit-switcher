@@ -48,8 +48,11 @@ class TradeMyBitSwitcher(object):
 
                 # get data from sources
                 self.logger.debug("Fetching data...")
-                bestalgo = self.best_algo()
 
+		mined = self.get_coin_info()
+                self.logger.debug("Recently mined: %s" % ', '.join(mined))
+
+                bestalgo = self.best_algo()
                 self.logger.debug("=> Best: %s | Currently mining: %s" % (bestalgo, self.current_algo))
 
                 if bestalgo != self.current_algo and bestalgo != None:
@@ -80,6 +83,14 @@ class TradeMyBitSwitcher(object):
 
         sys.exit()
 
+    def get_coin_info(self):
+        """Get list of coins mined by workers"""
+        try:
+            data = self.api.hashinfo()
+            return [x for x in data['workers']]
+	except (socket.error, KeyError):
+	    return None
+
     def best_algo(self):
         """Retrieves the "bestalgo" from TMB api"""
         try:
@@ -89,7 +100,7 @@ class TradeMyBitSwitcher(object):
             logString = []
             for algo in data:
                 if self.algos.has_key(algo['algo']):
-                  logString.append("%s : %f -> %f" % (algo['algo'], float(algo['score']), float(algo['score']) * float(self.algos[algo['algo']].weight)))
+                  logString.append("%s: %f->%f" % (algo['algo'], float(algo['score']), float(algo['score']) * float(self.algos[algo['algo']].weight)))
                   scores[algo['algo']] = float(algo['score']) * float(self.algos[algo['algo']].weight)
 
             self.logger.debug(' | '.join(logString))
@@ -110,7 +121,6 @@ class TradeMyBitSwitcher(object):
             else:
 		
 		distance = (scores[best_algo] - scores[self.current_algo]) / scores[self.current_algo]
-                #distance = (scores[best_algo] - scores[self.current_algo] / scores[self.current_algo])
 		self.logger.debug('Distance %s->%s: %f, Threshold: %f' % (best_algo, self.current_algo, distance, self.profitability_threshold))
                 if distance > self.profitability_threshold:
                     best = best_algo
