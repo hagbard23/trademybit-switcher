@@ -21,6 +21,7 @@ class Algo:
         self.command    = '' # the command that is run when we want to mine this coin.
         self.name       = name
         self.cnt        = 0
+	self.weight 	= 1.0
 
 class TradeMyBitSwitcher(object):
     def __init__(self):
@@ -87,9 +88,9 @@ class TradeMyBitSwitcher(object):
             scores = {}
             logString = []
             for algo in data:
-                logString.append("%s : %f" % (algo['algo'], float(algo['score'])))
                 if self.algos.has_key(algo['algo']):
-                  scores[algo['algo']] = float(algo['score'])
+                  logString.append("%s : %f -> %f" % (algo['algo'], float(algo['score']), float(algo['score']) * float(self.algos[algo['algo']].weight)))
+                  scores[algo['algo']] = float(algo['score']) * float(self.algos[algo['algo']].weight)
 
             self.logger.debug(' | '.join(logString))
 
@@ -101,11 +102,21 @@ class TradeMyBitSwitcher(object):
             best_algo = max(scores.iterkeys(), key=(lambda key: scores[key]))
 
             # Switch if not yet mining or we're crossing the threshold
-            if (self.current_algo == None) or \
-                ((scores[best_algo] - scores[self.current_algo] / scores[self.current_algo]) > self.profitability_threshold):
+            if self.current_algo == None:
                 best = best_algo
+	    elif best_algo == self.current_algo:
+		self.logger.debug('Current is best, not switching')
+		best = None
             else:
-                best = None
+		
+		distance = (scores[best_algo] - scores[self.current_algo]) / scores[self.current_algo]
+                #distance = (scores[best_algo] - scores[self.current_algo] / scores[self.current_algo])
+		self.logger.debug('Distance %s->%s: %f, Threshold: %f' % (best_algo, self.current_algo, distance, self.profitability_threshold))
+                if distance > self.profitability_threshold:
+                    best = best_algo
+                else:
+                    self.logger.debug('Score profitability distance not good enough to switch')
+                    best = None
 
             if self.profitability_log:
                 scores['date'] = datetime.datetime.now()
@@ -264,7 +275,12 @@ class TradeMyBitSwitcher(object):
                 self.logger.warning('Script for %s not configured!' % key)
                 continue
 
+	for key in dict(config.items('Weights')):
+            self.algos[key].weight = config.get('Weights', key)
+
         self.logger.debug("Enabled algorithms: %s" % ', '.join(self.algos.keys()))
+
+	self.logger.debug("Algorithm weights: %s" % ', '.join([self.algos[x].weight for x in self.algos.keys()]))
         if not self.algos:
             self.logger.critical('No mining algorithms enabled!')
             sys.exit()

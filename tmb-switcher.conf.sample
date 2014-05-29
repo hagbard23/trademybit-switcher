@@ -43,8 +43,30 @@ port=4028
 #nscrypt = ./scripts/nscrypt.sh
 #scrypt  = ./scripts/scrypt.sh
 #x11     = ./scripts/x11.sh
+#x13     = ./scripts/x13.sh
 
 # For Windows, uncomment below
 #nscrypt = scripts\nscrypt.bat
 #scrypt  = scripts\scrypt.bat
 #x11     = scripts\x11.bat
+#x13     = scripts\x13.bat
+
+[Weights]
+# Each algorithm can be assigned a weight, which allows you
+# to "prefer" different algorithms.
+#
+# The profitibility is multiplied by the weight, eg
+#   TMB profitability x11 = 0.05, scrypt = 0.06
+#   Weight x11 = 1.0, scrypt = 0.8
+#   Weighted profitability x11 = 0.05 * 1.0 = 0.05
+#   Weighted profitability scrypt = 0.06 * 0.8 = 0.048
+#   Preferred algorithm would therefore be x11
+#
+# This is useful to influence the algorithm selection
+# in order to take in to account power used etc.
+
+#nscrypt = 1.0
+#scrypt = 1.0
+#x11 = 1.0
+#x13 = 1.0
+
